@@ -1,3 +1,6 @@
+/**
+ * @internal
+ */
 export class Chain<T> {
 	constructor(protected readonly value: T) {}
 
@@ -43,6 +46,9 @@ export function chain<T>(value: T) {
 	return new Chain(value);
 }
 
+/**
+ * @internal
+ */
 export class BoolChain extends Chain<boolean> {
 	flip() {
 		return new BoolChain(!this.value);
@@ -65,6 +71,9 @@ export function bool(value: boolean) {
 	return new BoolChain(value);
 }
 
+/**
+ * @internal
+ */
 export class NumberChain extends Chain<number> {
 	multiply(other: number) {
 		return new NumberChain(this.value * other);
@@ -130,6 +139,9 @@ export function number(value: number) {
 export type Predicate<T> = (item: T, index: number, array: readonly T[]) => boolean;
 export type Transformer<T, U> = (item: T, index: number, array: readonly T[]) => U;
 
+/**
+ * @internal
+ */
 export class ArrayChain<T extends defined> extends Chain<T[]> {
 	/**
 	 * Get the size of the array.
@@ -276,6 +288,9 @@ export class ArrayChain<T extends defined> extends Chain<T[]> {
 	// TODO: minBy
 }
 
+/**
+ * @internal
+ */
 export class NumberArrayChain extends ArrayChain<number> {
 	/**
 	 * Get the sum of the array.
