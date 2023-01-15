@@ -3,5 +3,8 @@
 	"out": "docs",
 	"gitRevision": "master",
 	"readme": "none",
-	"name": "Quick"
+	"name": "Quick",
+	"navigationLinks": {
+		"GitHub": "https://github.com/Belkworks/quick2"
+	}
 }
