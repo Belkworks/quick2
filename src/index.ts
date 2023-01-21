@@ -278,13 +278,13 @@ export class ArrayChain<T extends defined> extends Chain<T[]> {
 		return this.every((item, index, array) => !predicate(item, index, array));
 	}
 
+	/** Attempt to turn the ArrayChain into a {@link NumberArrayChain}. */
 	numbers() {
-		return new NumberArrayChain(
-			this.value.map((n) => {
-				assert(typeIs(n, "number"), `Expected ${n} to be a number`);
-				return n;
-			}),
+		assert(
+			this.value.every((item) => typeIs(item, "number")),
+			"Expected all items to be numbers",
 		);
+		return new NumberArrayChain(this.value as unknown as number[]);
 	}
 
 	reduce(thru: (acc: T, item: T, index: number, array: readonly T[]) => T) {
