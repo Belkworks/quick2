@@ -2,8 +2,13 @@
 export class Chain<T> {
 	constructor(protected readonly value: T) {}
 
+	/** Returns the wrapped value */
 	done() {
 		return this.value;
+	}
+
+	clone() {
+		return new Chain(this.value);
 	}
 
 	thru<U extends defined>(thru: (value: T) => U) {
@@ -13,6 +18,10 @@ export class Chain<T> {
 	tap(thru: (value: T) => void) {
 		thru(this.value);
 		return this;
+	}
+
+	via<U>(fn: (value: Chain<T>) => Chain<U>) {
+		return fn(this);
 	}
 
 	/**
@@ -46,6 +55,14 @@ export class Chain<T> {
 	isNil() {
 		return new BoolChain(this.value === undefined);
 	}
+
+	toString() {
+		return new Chain(tostring(this.value));
+	}
+
+	eq(other: T) {
+		return new BoolChain(this.value === other);
+	}
 }
 
 /** Create a new chain
@@ -61,9 +78,16 @@ export function unwrap<T>(value: T | Chain<T>) {
 	return value;
 }
 
+/** Turn a chain or normal value into a chain.
+ */
+export function wrap<T>(value: T | Chain<T>) {
+	if (value instanceof Chain) return value;
+	return new Chain(value);
+}
+
 /** @internal */
 export class BoolChain extends Chain<boolean> {
-	flip() {
+	negate() {
 		return new BoolChain(!this.value);
 	}
 
@@ -78,6 +102,11 @@ export class BoolChain extends Chain<boolean> {
 	xor(other: boolean) {
 		return new BoolChain(this.value !== other);
 	}
+
+	/** Returns A if the value is true, B otherwise. */
+	ab<A, B>(a: A, b: B) {
+		return new Chain(this.value ? a : b);
+	}
 }
 
 export function bool(value: boolean) {
@@ -86,14 +115,6 @@ export function bool(value: boolean) {
 
 /** @internal */
 export class NumberChain extends Chain<number> {
-	multiply(other: number) {
-		return new NumberChain(this.value * other);
-	}
-
-	double() {
-		return this.multiply(2);
-	}
-
 	add(other: number) {
 		return new NumberChain(this.value + other);
 	}
@@ -110,8 +131,32 @@ export class NumberChain extends Chain<number> {
 		return new NumberChain(this.value * other);
 	}
 
+	double() {
+		return this.mul(2);
+	}
+
 	mod(other: number) {
 		return new NumberChain(this.value % other);
+	}
+
+	float() {
+		return this.mod(1);
+	}
+
+	negative() {
+		return this.lt(0);
+	}
+
+	negate() {
+		return this.mul(-1);
+	}
+
+	abs() {
+		return new NumberChain(math.abs(this.value));
+	}
+
+	reciprocal() {
+		return new NumberChain(1 / this.value);
 	}
 
 	ceil() {
@@ -130,20 +175,16 @@ export class NumberChain extends Chain<number> {
 		return new BoolChain(this.value > other);
 	}
 
-	lt(other: number) {
-		return new BoolChain(this.value < other);
-	}
-
 	gte(other: number) {
 		return new BoolChain(this.value >= other);
 	}
 
-	lte(other: number) {
-		return new BoolChain(this.value <= other);
+	lt(other: number) {
+		return new BoolChain(this.value < other);
 	}
 
-	eq(other: number) {
-		return new BoolChain(this.value === other);
+	lte(other: number) {
+		return new BoolChain(this.value <= other);
 	}
 }
 
@@ -180,7 +221,7 @@ export class ArrayChain<T extends defined> extends Chain<T[]> {
 			if (predicate(item, index, array)) pass.push(item);
 			else fail.push(item);
 		});
-		return new ArrayChain([pass, fail] as [T[], T[]]);
+		return new ArrayChain([pass, fail]);
 	}
 
 	map<U extends defined>(thru: Transformer<T, U>) {
